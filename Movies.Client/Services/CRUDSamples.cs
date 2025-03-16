@@ -29,7 +29,8 @@ public class CRUDSamples : IIntegrationService
         httpClient.DefaultRequestHeaders.Accept.Add(
             new MediaTypeWithQualityHeaderValue("application/json"));
         httpClient.DefaultRequestHeaders.Accept.Add(
-           new MediaTypeWithQualityHeaderValue("application/xml"));
+           new MediaTypeWithQualityHeaderValue("application/xml",
+           0.9));
 
 
         var response = await httpClient.GetAsync("api/movies");
