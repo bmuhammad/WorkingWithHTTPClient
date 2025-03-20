@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Movies.Client;
 using Movies.Client.Helpers;
 using Movies.Client.Services; 
 
@@ -24,6 +25,13 @@ using IHost host = Host.CreateDefaultBuilder(args)
                 return handler;
             });
 
+        //Registers Api client with transient scope
+        services.AddHttpClient<MoviesAPIClient>(configureClient =>
+        {
+            configureClient.BaseAddress = new Uri("http://localhost:5001");
+            configureClient.Timeout = new TimeSpan(0, 0, 30);
+        });
+
         // For the cancellation samples
         // services.AddScoped<IIntegrationService, CancellationSamples>();
 
@@ -43,7 +51,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
         // services.AddScoped<IIntegrationService, FaultsAndErrorsSamples>();
 
         // For the HttpClientFactory samples
-         services.AddScoped<IIntegrationService, HttpClientFactorySamples>();
+        services.AddScoped<IIntegrationService, HttpClientFactorySamples>();
 
         // For the local streams samples
         // services.AddScoped<IIntegrationService, LocalStreamsSamples>();

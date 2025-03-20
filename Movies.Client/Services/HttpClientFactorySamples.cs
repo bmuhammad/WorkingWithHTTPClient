@@ -11,15 +11,16 @@ public class HttpClientFactorySamples : IIntegrationService
 
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly JsonSerializerOptionsWrapper _jsonSerializerOptionsWrapper;
-   /// private readonly MoviesAPIClient _moviesAPIClient;
+    private readonly MoviesAPIClient _moviesAPIClient;
 
     public HttpClientFactorySamples(IHttpClientFactory httpClientFactory,
-         JsonSerializerOptionsWrapper jsonSerializerOptionsWrapper)
+         JsonSerializerOptionsWrapper jsonSerializerOptionsWrapper,
+          MoviesAPIClient moviesAPIClient)
     {
         _jsonSerializerOptionsWrapper = jsonSerializerOptionsWrapper ??
             throw new ArgumentNullException(nameof(jsonSerializerOptionsWrapper));
-      //  _moviesAPIClient = moviesAPIClient ??
-        //    throw new ArgumentNullException(nameof(moviesAPIClient));
+       _moviesAPIClient = moviesAPIClient ??
+            throw new ArgumentNullException(nameof(moviesAPIClient));
         _httpClientFactory = httpClientFactory ??
             throw new ArgumentNullException(nameof(httpClientFactory));
     }
@@ -28,8 +29,9 @@ public class HttpClientFactorySamples : IIntegrationService
     {
         // await
         // TestDisposeHttpClientAsync();
-       //  await TestReuseHttpClientAsync();
-         await GetFilmsAsync();
+        //  await TestReuseHttpClientAsync();
+        //  await GetFilmsAsync();
+         await GetMoviesWithTypedHttpClientAsync();
     }
 
     public async Task GetFilmsAsync()
@@ -49,6 +51,23 @@ public class HttpClientFactorySamples : IIntegrationService
 
         var movies = JsonSerializer.Deserialize<IEnumerable<Movie>>(
             content,
+            _jsonSerializerOptionsWrapper.Options);
+    }
+
+    private async Task GetMoviesWithTypedHttpClientAsync()
+    {
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            "api/movies");
+        request.Headers.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+
+        var response = await _moviesAPIClient.Client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        var movies = JsonSerializer.Deserialize<IEnumerable<Movie>>(content,
             _jsonSerializerOptionsWrapper.Options);
     }
 
