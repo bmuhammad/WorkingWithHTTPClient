@@ -1,4 +1,5 @@
-﻿using Movies.Client.Models;
+﻿using Movies.Client.Helpers;
+using Movies.Client.Models;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Xml.Serialization;
@@ -8,11 +9,15 @@ namespace Movies.Client.Services;
 public class CRUDSamples : IIntegrationService
 {
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly JsonSerializerOptionsWrapper _jsonSerializerOptionsWrapper;
 
-    public CRUDSamples(IHttpClientFactory httpClientFactory)
+    public CRUDSamples(IHttpClientFactory httpClientFactory,
+             JsonSerializerOptionsWrapper jsonSerializerOptionsWrapper)
     {
+        _jsonSerializerOptionsWrapper = jsonSerializerOptionsWrapper ??
+            throw new ArgumentNullException(nameof(jsonSerializerOptionsWrapper));
         _httpClientFactory = httpClientFactory ??
-              throw new ArgumentNullException(nameof(httpClientFactory));
+            throw new ArgumentNullException(nameof(httpClientFactory));
     }
     public async Task RunAsync()
     {
@@ -22,9 +27,8 @@ public class CRUDSamples : IIntegrationService
 
     public async Task GetResourceAsync()
     {
-        var httpClient = _httpClientFactory.CreateClient();
-        httpClient.BaseAddress = new Uri("http://localhost:5001");
-        httpClient.Timeout = new TimeSpan(0, 0, 30);
+        var httpClient = _httpClientFactory.CreateClient("MoviesAPIClient");
+ 
 
         httpClient.DefaultRequestHeaders.Clear();
         httpClient.DefaultRequestHeaders.Accept.Add(
@@ -47,9 +51,7 @@ public class CRUDSamples : IIntegrationService
         {
             movies = JsonSerializer.Deserialize<List<Movie>>(
                 content,
-                new JsonSerializerOptions
-                { 
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase});
+               _jsonSerializerOptionsWrapper.Options);
         }
         else if (response.Content.Headers.ContentType?.MediaType
             == "application/xml")
@@ -64,8 +66,6 @@ public class CRUDSamples : IIntegrationService
     public async Task GetResourceThroughHttpRequestMessageAsync()
     {
         var httpClient = _httpClientFactory.CreateClient("MoviesAPIClient");
-        httpClient.BaseAddress = new Uri("http://localhost:5001");
-        httpClient.Timeout = new TimeSpan(0, 0, 30);
 
         var request = new HttpRequestMessage(
             HttpMethod.Get,
@@ -80,10 +80,7 @@ public class CRUDSamples : IIntegrationService
 
         var movies = JsonSerializer.Deserialize<IEnumerable<Movie>>(
             content,
-             new JsonSerializerOptions
-             {
-                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-             });
+              _jsonSerializerOptionsWrapper.Options);
     }
 
 }
