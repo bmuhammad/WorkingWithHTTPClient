@@ -24,7 +24,8 @@ public class CRUDSamples : IIntegrationService
         // await GetResourceAsync();
         // await GetResourceThroughHttpRequestMessageAsync();
         // await CreateResourceAsync();
-           await UpdateResourceAsync();
+        //  await UpdateResourceAsync();
+        await DeleteResourceAsync();
     }
 
     public async Task GetResourceAsync()
@@ -159,4 +160,19 @@ public class CRUDSamples : IIntegrationService
             _jsonSerializerOptionsWrapper.Options);
     }
 
+    public async Task DeleteResourceAsync()
+    {
+        var httpClient = _httpClientFactory.CreateClient("MoviesAPIClient");
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Delete,
+            "api/movies/5b1c2b4d-48c7-402a-80c3-cc796ad49c6b");
+        request.Headers.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+
+        var response = await httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+    }
 }
