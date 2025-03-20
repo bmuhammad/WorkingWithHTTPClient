@@ -16,12 +16,12 @@ builder.Services.AddControllers(options =>
     //options.OutputFormatters.Insert(0, new XmlSerializerOutputFormatter());
     //options.InputFormatters.Insert(0, new XmlSerializerInputFormatter(options));
 })
-// Override System.Text.Json with Json.NET
-.AddNewtonsoftJson(setupAction =>
-{
-    setupAction.SerializerSettings.ContractResolver =
-       new CamelCasePropertyNamesContractResolver();
-})
+// Override System.Text.Json with Json.NET uncomment when using json.net. used for patching resources
+//.AddNewtonsoftJson(setupAction =>
+//{
+//    setupAction.SerializerSettings.ContractResolver =
+//       new CamelCasePropertyNamesContractResolver();
+//})
 .AddXmlSerializerFormatters();
 
 // add support for (de)compressing requests/responses (eg gzip)
