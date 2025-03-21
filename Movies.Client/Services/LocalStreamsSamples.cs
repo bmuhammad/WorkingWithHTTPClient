@@ -23,12 +23,16 @@ public class LocalStreamsSamples : IIntegrationService
     public async Task RunAsync()
     {
         //await GetPosterWithStreamAsync();
-        //  await GetPosterWithStreamAndCompletionModeAsync();
+        //await GetPosterWithStreamAndCompletionModeAsync();
         //await TestMethodAsync(() => GetPosterWithoutStreamAsync());
         //await TestMethodAsync(() => GetPosterWithStreamAsync());
         //await TestMethodAsync(() => GetPosterWithStreamAndCompletionModeAsync());
         //await PostPosterWithStreamAsync();
-        await PostAndReadPosterWithStreamsAsync();
+        // await PostAndReadPosterWithStreamsAsync();
+
+        await TestMethodAsync(() => PostPosterWithoutStreamsAsync());
+        await TestMethodAsync(() => PostPosterWithStreamAsync());
+        await TestMethodAsync(() => PostAndReadPosterWithStreamsAsync());
     }
 
     private async Task GetPosterWithStreamAsync()
@@ -194,6 +198,45 @@ public class LocalStreamsSamples : IIntegrationService
                 }
             }
         }
+    }
+
+    public async Task PostPosterWithoutStreamsAsync()
+    {
+        var httpClient = _httpClientFactory.CreateClient("MoviesAPIClient");
+
+        // generate a movie poster of 5MB
+        var random = new Random();
+        var generatedBytes = new byte[5242880];
+        random.NextBytes(generatedBytes);
+
+        var posterForCreation = new PosterForCreation()
+        {
+            Name = "A new poster for The Big Lebowski",
+            Bytes = generatedBytes
+        };
+
+        var serializedPosterToCreate = JsonSerializer.Serialize(
+            posterForCreation,
+            _jsonSerializerOptionsWrapper.Options);
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "api/movies/d8663e5e-7494-4f81-8739-6e0de1bea7ee/posters");
+        request.Headers.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+
+        request.Content = new StringContent(serializedPosterToCreate);
+        request.Content.Headers.ContentType =
+            new MediaTypeHeaderValue("application/json");
+
+        var response = await httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+
+        var createdPoster = JsonSerializer.Deserialize<Poster>(
+            content,
+             _jsonSerializerOptionsWrapper.Options);
     }
 
 
