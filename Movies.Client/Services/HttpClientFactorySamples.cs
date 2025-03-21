@@ -31,7 +31,8 @@ public class HttpClientFactorySamples : IIntegrationService
         // TestDisposeHttpClientAsync();
         //  await TestReuseHttpClientAsync();
         //  await GetFilmsAsync();
-         await GetMoviesWithTypedHttpClientAsync();
+        // await GetMoviesWithTypedHttpClientAsync();
+        await GetMoviesViaMoviesAPIClientAsync();
     }
 
     public async Task GetFilmsAsync()
@@ -54,22 +55,29 @@ public class HttpClientFactorySamples : IIntegrationService
             _jsonSerializerOptionsWrapper.Options);
     }
 
-    private async Task GetMoviesWithTypedHttpClientAsync()
+
+    private async Task GetMoviesViaMoviesAPIClientAsync()
     {
-        var request = new HttpRequestMessage(
-            HttpMethod.Get,
-            "api/movies");
-        request.Headers.Accept.Add(
-            new MediaTypeWithQualityHeaderValue("application/json"));
-
-        var response = await _moviesAPIClient.Client.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-
-        var content = await response.Content.ReadAsStringAsync();
-
-        var movies = JsonSerializer.Deserialize<IEnumerable<Movie>>(content,
-            _jsonSerializerOptionsWrapper.Options);
+        var movies = await _moviesAPIClient.GetMoviesAsync();
     }
+
+
+    //private async Task GetMoviesWithTypedHttpClientAsync()
+    //{
+    //    var request = new HttpRequestMessage(
+    //        HttpMethod.Get,
+    //        "api/movies");
+    //    request.Headers.Accept.Add(
+    //        new MediaTypeWithQualityHeaderValue("application/json"));
+
+    //    var response = await _moviesAPIClient.Client.SendAsync(request);
+    //    response.EnsureSuccessStatusCode();
+
+    //    var content = await response.Content.ReadAsStringAsync();
+
+    //    var movies = JsonSerializer.Deserialize<IEnumerable<Movie>>(content,
+    //        _jsonSerializerOptionsWrapper.Options);
+    //}
 
     private async Task TestDisposeHttpClientAsync()
     {
