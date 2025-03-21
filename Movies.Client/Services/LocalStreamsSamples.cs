@@ -1,5 +1,6 @@
 ﻿using Movies.Client.Helpers;
 using Movies.Client.Models;
+using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -22,7 +23,10 @@ public class LocalStreamsSamples : IIntegrationService
     public async Task RunAsync()
     {
         //await GetPosterWithStreamAsync();
-        await GetPosterWithStreamAndCompletionModeAsync();
+        //  await GetPosterWithStreamAndCompletionModeAsync();
+        await TestMethodAsync(() => GetPosterWithoutStreamAsync());
+        await TestMethodAsync(() => GetPosterWithStreamAsync());
+        await TestMethodAsync(() => GetPosterWithStreamAndCompletionModeAsync());
     }
 
     private async Task GetPosterWithStreamAsync()
@@ -66,5 +70,45 @@ public class LocalStreamsSamples : IIntegrationService
                     stream,
                     _jsonSerializerOptionsWrapper.Options);
         }
+    }
+
+    private async Task GetPosterWithoutStreamAsync()
+    {
+        var httpClient = _httpClientFactory.CreateClient("MoviesAPIClient");
+
+        var request = new HttpRequestMessage(
+            HttpMethod.Get,
+            $"api/movies/d8663e5e-7494-4f81-8739-6e0de1bea7ee/posters/{Guid.NewGuid()}");
+        request.Headers.Accept.Add(
+            new MediaTypeWithQualityHeaderValue("application/json"));
+
+        var response = await httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var content = await response.Content.ReadAsStringAsync();
+        var poster = JsonSerializer.Deserialize<Poster>(
+            content,
+            _jsonSerializerOptionsWrapper.Options);
+    }
+
+
+    public async Task TestMethodAsync(Func<Task> functionToTest)
+    {
+        // warmup
+        await functionToTest();
+
+        // start stopwatch 
+        var stopWatch = Stopwatch.StartNew();
+
+        // run requests
+        for (int i = 0; i < 200; i++)
+        {
+            await functionToTest();
+        }
+
+        // stop stopwatch
+        stopWatch.Stop();
+        Console.WriteLine($"Elapsed milliseconds without stream: {stopWatch.ElapsedMilliseconds}, " +
+            $"averaging {stopWatch.ElapsedMilliseconds / 200} milliseconds/request");
     }
 }
