@@ -66,4 +66,64 @@ public class FaultsAndErrorsSamples : IIntegrationService
 
         }
     }
+
+    private async Task PostMovieAndHandleErrorsAsync(
+          CancellationToken cancellationToken)
+    {
+        var httpClient = _httpClientFactory.CreateClient("MoviesAPIClient");
+
+        var movieForCreation = new MovieForCreation();
+
+        var serializedMovieForCreation = JsonSerializer.Serialize(
+                   movieForCreation,
+                   _jsonSerializerOptionsWrapper.Options);
+
+        using (var request = new HttpRequestMessage(
+            HttpMethod.Post,
+            "api/movies"))
+        {
+            request.Headers.Accept.Add(
+                new MediaTypeWithQualityHeaderValue("application/json"));
+            request.Headers.AcceptEncoding.Add(
+                new StringWithQualityHeaderValue("gzip"));
+            request.Content = new StringContent(serializedMovieForCreation);
+            request.Content.Headers.ContentType =
+                new MediaTypeHeaderValue("application/json");
+
+            using (var response = await httpClient.SendAsync(request,
+                    HttpCompletionOption.ResponseHeadersRead,
+                    cancellationToken))
+            {
+                if (!response.IsSuccessStatusCode)
+                {
+                    // inspect the status code
+                    if (response.StatusCode == HttpStatusCode.BadRequest)
+                    {
+                        // read out the response body and log it to the console window
+                        var errorStream = await response.Content.ReadAsStreamAsync();
+
+                        var errorAsProblemDetails = await JsonSerializer.DeserializeAsync<ExtendedProblemDetailsWithErrors>(
+                        errorStream,
+                        _jsonSerializerOptionsWrapper.Options);
+
+                        var errors = errorAsProblemDetails?.Errors;
+                        Console.WriteLine(errorAsProblemDetails?.Title);
+
+                        return;
+                    }
+                    else if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        // trigger a login flow
+                        return;
+                    }
+                    response.EnsureSuccessStatusCode();
+                }
+
+                var stream = await response.Content.ReadAsStreamAsync();
+                var movie = await JsonSerializer.DeserializeAsync<Movie>(
+                    stream,
+                    _jsonSerializerOptionsWrapper.Options);
+            }
+        }
+    }
 } 
