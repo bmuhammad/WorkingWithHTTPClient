@@ -34,7 +34,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
         });
 
         // For the cancellation samples
-        services.AddScoped<IIntegrationService, CancellationSamples>();
+       // services.AddScoped<IIntegrationService, CancellationSamples>();
 
         // For the compression samples
         // services.AddScoped<IIntegrationService, CompressionSamples>();
@@ -49,7 +49,7 @@ using IHost host = Host.CreateDefaultBuilder(args)
         // services.AddScoped<IIntegrationService, CustomMessageHandlersSamples>();
 
         // For the faults and errors samples
-        // services.AddScoped<IIntegrationService, FaultsAndErrorsSamples>();
+         services.AddScoped<IIntegrationService, FaultsAndErrorsSamples>();
 
         // For the HttpClientFactory samples
        // services.AddScoped<IIntegrationService, HttpClientFactorySamples>();
