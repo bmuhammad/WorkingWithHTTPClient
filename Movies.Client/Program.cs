@@ -3,7 +3,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Movies.Client;
 using Movies.Client.Helpers;
-using Movies.Client.Services; 
+using Movies.Client.Services;
+using Polly;
 
 using IHost host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((_, services) =>
@@ -18,7 +19,12 @@ using IHost host = Host.CreateDefaultBuilder(args)
             {
                 configureClient.BaseAddress = new Uri("http://localhost:5001");
                 configureClient.Timeout = new TimeSpan(0, 0, 30);
-            }).ConfigurePrimaryHttpMessageHandler(() =>
+            })
+        //.AddPolicyHandler(Policy.HandleResult<HttpResponseMessage>(
+         //   HttpResponseMessage => !HttpResponseMessage.IsSuccessStatusCode)
+         //   .RetryAsync(5))
+        
+        .ConfigurePrimaryHttpMessageHandler(() =>
             {
                 var handler = new SocketsHttpHandler();
                 handler.AutomaticDecompression = System.Net.DecompressionMethods.GZip;
